@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { ACTIONS, CHALLENGES } from '../data/actions';
 import { calculateQuizFootprint } from '../data/quizQuestions';
 import { calculateEmissions } from '../data/emissionFactors';
@@ -12,6 +12,8 @@ import {
 import { rebuildHistory } from '../utils/history';
 import { XP_REWARDS } from '../utils/gamification';
 import { validateLogInput, sanitizeNotes } from '../utils/validation';
+import { parseAndValidateImport } from '../utils/importSchema';
+import { safeLocalStorage } from '../utils/storage';
 
 const initialState = {
   onboardingComplete: false,
@@ -249,6 +251,14 @@ export const useStore = create(
 
       updateProfile: (profile) => set({ profile: { ...get().profile, ...profile } }),
 
+      retakeQuiz: () => {
+        set({
+          onboardingComplete: false,
+          quizAnswers: {},
+          quizResults: null,
+        });
+      },
+
       checkBadges: () => {
         const allNew = [];
         let iterations = 0;
@@ -300,30 +310,12 @@ export const useStore = create(
       },
 
       importData: (jsonString) => {
-        try {
-          const parsed = JSON.parse(jsonString);
-          const data = parsed.data || parsed;
-          set({
-            onboardingComplete: data.onboardingComplete ?? false,
-            profile: data.profile ?? initialState.profile,
-            quizAnswers: data.quizAnswers ?? {},
-            quizResults: data.quizResults ?? null,
-            logs: data.logs ?? [],
-            history: data.history ?? [],
-            completedActions: data.completedActions ?? {},
-            completedChallenges: data.completedChallenges ?? {},
-            challengeProgress: data.challengeProgress ?? {},
-            goals: data.goals ?? initialState.goals,
-            streak: data.streak ?? initialState.streak,
-            gamification: data.gamification ?? initialState.gamification,
-            earnedBadgeIds: data.earnedBadgeIds ?? [],
-            theme: data.theme ?? 'light',
-            badgeAlert: null,
-          });
-          return { success: true };
-        } catch {
-          return { success: false, error: 'Invalid JSON file' };
+        const result = parseAndValidateImport(jsonString);
+        if (!result.valid) {
+          return { success: false, error: result.errors.join(' ') };
         }
+        set({ ...result.data, badgeAlert: null });
+        return { success: true };
       },
 
       resetAllData: () => {
@@ -351,6 +343,7 @@ export const useStore = create(
     }),
     {
       name: 'ecotrack-storage',
+      storage: createJSONStorage(() => safeLocalStorage),
       version: 1,
       migrate: (persisted, version) => {
         if (version === 0) {

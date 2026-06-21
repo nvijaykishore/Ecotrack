@@ -5,6 +5,7 @@ import {
   updateStreak,
   getFootprintRating,
   getCategoryBreakdown,
+  getPersonalizedTips,
 } from '../calculations';
 
 const sampleLogs = [
@@ -53,5 +54,10 @@ describe('calculations', () => {
   it('breaks down categories for month', () => {
     const breakdown = getCategoryBreakdown(sampleLogs, 'month');
     expect(breakdown.find((c) => c.name === 'Transport').value).toBe(5);
+  });
+
+  it('returns tips for empty logs', () => {
+    const tips = getPersonalizedTips({ location: 'mumbai' }, [], null);
+    expect(tips[0].title).toBe('Start Logging');
   });
 });

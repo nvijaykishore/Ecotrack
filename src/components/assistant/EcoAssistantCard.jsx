@@ -69,9 +69,12 @@ export default function EcoAssistantCard() {
                   <div>
                     <p className="font-medium text-sm text-eco-800 dark:text-eco-100">{rec.title}</p>
                     <p className="text-sm text-eco-600 dark:text-eco-400 mt-1">{rec.message}</p>
-                    <p className="text-xs text-eco-400 mt-1.5 italic">
-                      Logic: {rec.reasoning}
-                    </p>
+                    <details className="mt-1.5">
+                      <summary className="text-xs text-eco-500 cursor-pointer focus:outline-none focus:ring-2 focus:ring-eco-500 rounded">
+                        Why this recommendation?
+                      </summary>
+                      <p className="text-xs text-eco-400 mt-1 italic">{rec.reasoning}</p>
+                    </details>
                   </div>
                   {rec.impactKg != null && (
                     <span className="text-xs font-semibold text-eco-600 whitespace-nowrap">

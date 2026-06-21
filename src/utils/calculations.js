@@ -156,6 +156,38 @@ export function getPersonalizedTips(profile, logs, breakdown) {
   return tips.slice(0, 4);
 }
 
+export function getWeeklyComparison(logs) {
+  const today = new Date();
+  const thisWeekStart = new Date(today);
+  thisWeekStart.setDate(today.getDate() - 6);
+  const lastWeekStart = new Date(today);
+  lastWeekStart.setDate(today.getDate() - 13);
+  const lastWeekEnd = new Date(today);
+  lastWeekEnd.setDate(today.getDate() - 7);
+
+  const sumRange = (start, end) => {
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+    return logs
+      .filter((l) => l.date >= startStr && l.date <= endStr)
+      .reduce((s, l) => s + l.emissions, 0);
+  };
+
+  const thisWeek = sumRange(thisWeekStart, today);
+  const lastWeek = sumRange(lastWeekStart, lastWeekEnd);
+  const hasData = thisWeek > 0 || lastWeek > 0;
+  const change = thisWeek - lastWeek;
+  const changePercent = lastWeek > 0 ? Math.round((change / lastWeek) * 100) : null;
+
+  return {
+    thisWeek: Math.round(thisWeek * 10) / 10,
+    lastWeek: Math.round(lastWeek * 10) / 10,
+    change: Math.round(change * 10) / 10,
+    changePercent,
+    hasData,
+  };
+}
+
 export function getFootprintRating(dailyKg) {
   if (dailyKg <= 6) return { label: 'Excellent', color: '#22c55e', level: 1 };
   if (dailyKg <= 10) return { label: 'Good', color: '#84cc16', level: 2 };

@@ -2,7 +2,9 @@ import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store/useStore';
 import Layout from './components/layout/Layout';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import Onboarding from './pages/Onboarding';
+import { STORAGE_QUOTA_EVENT } from './utils/storage';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Log = lazy(() => import('./pages/Log'));
@@ -26,22 +28,36 @@ function App() {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
+  useEffect(() => {
+    const onQuota = (e) => {
+      alert(e.detail?.message || 'Storage quota exceeded. Please export and clear old data.');
+    };
+    window.addEventListener(STORAGE_QUOTA_EVENT, onQuota);
+    return () => window.removeEventListener(STORAGE_QUOTA_EVENT, onQuota);
+  }, []);
+
   if (!onboardingComplete) {
-    return <Onboarding />;
+    return (
+      <ErrorBoundary>
+        <Onboarding />
+      </ErrorBoundary>
+    );
   }
 
   return (
     <Layout>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/log" element={<Log />} />
-          <Route path="/actions" element={<Actions />} />
-          <Route path="/education" element={<Education />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/log" element={<Log />} />
+            <Route path="/actions" element={<Actions />} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </Layout>
   );
 }

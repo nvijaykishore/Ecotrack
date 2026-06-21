@@ -1,0 +1,32 @@
+/** Thresholds and priorities for Eco Assistant rule engine */
+
+export const RULE_PRIORITY = {
+  ONBOARD_LOG: 100,
+  OVER_DAILY_GOAL: 95,
+  LOG_TODAY: 90,
+  SWITCH_METRO: 85,
+  AC_OPTIMIZATION: 75,
+  STREAK_PUSH: 70,
+  SUGGEST_ACTION: 60,
+  START_CHALLENGE: 55,
+  BENCHMARK: 40,
+};
+
+export const THRESHOLDS = {
+  TRANSPORT_MONTHLY_KG: 30,
+  ELECTRICITY_MONTHLY_KG: 40,
+  MIN_CAR_LOGS_FOR_METRO: 2,
+  MIN_BENCHMARK_DIFF_KG: 1,
+  MAX_RECOMMENDATIONS: 4,
+  MIN_ACTIONS_BEFORE_STOP_SUGGESTING: 5,
+  METRO_SAVINGS_DISTANCE_KM: 10,
+  CAR_PETROL_FACTOR: 0.192,
+  METRO_FACTOR: 0.033,
+};
+
+export const SUMMER_MONTHS = { start: 3, end: 5 }; // Apr–Jun (0-indexed)
+
+export const STREAK_MILESTONES = {
+  before: [2, 6, 13, 29],
+  targets: { 2: 3, 6: 7, 13: 14, 29: 30 },
+};

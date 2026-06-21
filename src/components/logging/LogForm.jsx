@@ -89,7 +89,7 @@ export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 
       </div>
 
       <div>
-        <label className="label">Activity</label>
+        <label className="label" htmlFor="log-activity">Activity</label>
         <select
           id="log-activity"
           className="input-field"
@@ -109,10 +109,11 @@ export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="label">
+          <label className="label" htmlFor="log-quantity">
             Quantity {selectedItem ? `(${selectedItem.unit})` : ''}
           </label>
           <input
+            id="log-quantity"
             type="number"
             className="input-field"
             min="0.01"
@@ -124,8 +125,9 @@ export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 
           />
         </div>
         <div>
-          <label className="label">Date</label>
+          <label className="label" htmlFor="log-date">Date</label>
           <input
+            id="log-date"
             type="date"
             className="input-field"
             value={date}
@@ -137,8 +139,9 @@ export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 
       </div>
 
       <div>
-        <label className="label">Notes (optional)</label>
+        <label className="label" htmlFor="log-notes">Notes (optional)</label>
         <input
+          id="log-notes"
           type="text"
           className="input-field"
           placeholder="e.g. Office commute, dinner out..."

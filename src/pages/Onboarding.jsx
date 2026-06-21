@@ -6,10 +6,14 @@ import QuizResults from '../components/onboarding/QuizResults';
 
 export default function Onboarding() {
   const completeOnboarding = useStore((s) => s.completeOnboarding);
+  const storedProfile = useStore((s) => s.profile);
   const [step, setStep] = useState('welcome');
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [profile, setProfile] = useState({ name: '', location: 'mumbai' });
+  const [profile, setProfile] = useState({
+    name: storedProfile?.name || '',
+    location: storedProfile?.location || 'mumbai',
+  });
 
   const currentQuestion = QUIZ_QUESTIONS[questionIndex];
   const previewResults = step === 'results' ? calculateQuizFootprint(answers) : null;

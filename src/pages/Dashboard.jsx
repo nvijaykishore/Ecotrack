@@ -2,6 +2,7 @@ import { useStore } from '../store/useStore';
 import EcoAssistantCard from '../components/assistant/EcoAssistantCard';
 import FootprintCard from '../components/dashboard/FootprintCard';
 import GoalProgressRings from '../components/dashboard/GoalProgressRings';
+import WeeklySummary from '../components/dashboard/WeeklySummary';
 import GamificationCard from '../components/gamification/GamificationCard';
 import TrendChart from '../components/dashboard/TrendChart';
 import TipsCard from '../components/dashboard/TipsCard';
@@ -48,6 +49,8 @@ export default function Dashboard() {
       />
 
       <GamificationCard />
+
+      <WeeklySummary logs={logs} />
 
       <TrendChart history={history} logs={logs} />
 

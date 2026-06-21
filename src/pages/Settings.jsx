@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import {
-  Moon, Sun, Download, Upload, Trash2, FileText, User, Target, AlertTriangle,
+  Moon, Sun, Download, Upload, Trash2, FileText, User, Target, AlertTriangle, RefreshCw,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import Card from '../components/ui/Card';
@@ -16,6 +16,7 @@ export default function Settings() {
   const exportData = useStore((s) => s.exportData);
   const importData = useStore((s) => s.importData);
   const resetAllData = useStore((s) => s.resetAllData);
+  const retakeQuiz = useStore((s) => s.retakeQuiz);
 
   const [importMessage, setImportMessage] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -105,11 +106,26 @@ export default function Settings() {
         </div>
       </Card>
 
+      <Card title="Carbon Profile" action={<RefreshCw className="w-5 h-5 text-eco-400" />}>
+        <p className="text-sm text-eco-500 mb-4">
+          Retake the onboarding quiz to refresh your baseline footprint. Your logs, badges, and XP are kept.
+        </p>
+        <button
+          type="button"
+          className="btn-outline w-full flex items-center justify-center gap-2"
+          onClick={() => retakeQuiz()}
+        >
+          <RefreshCw className="w-4 h-4" />
+          Retake Carbon Quiz
+        </button>
+      </Card>
+
       <Card title="Profile" action={<User className="w-5 h-5 text-eco-400" />}>
         <div className="space-y-4">
           <div>
-            <label className="label">Name</label>
+            <label className="label" htmlFor="settings-name">Name</label>
             <input
+              id="settings-name"
               type="text"
               className="input-field"
               value={localProfile.name}
@@ -117,8 +133,9 @@ export default function Settings() {
             />
           </div>
           <div>
-            <label className="label">Location</label>
+            <label className="label" htmlFor="settings-location">Location</label>
             <select
+              id="settings-location"
               className="input-field"
               value={localProfile.location}
               onChange={(e) => setLocalProfile({ ...localProfile, location: e.target.value })}
@@ -138,8 +155,9 @@ export default function Settings() {
       <Card title="Goals" action={<Target className="w-5 h-5 text-eco-400" />}>
         <div className="space-y-4">
           <div>
-            <label className="label">Daily Target (kg CO₂e)</label>
+            <label className="label" htmlFor="settings-daily-target">Daily Target (kg CO₂e)</label>
             <input
+              id="settings-daily-target"
               type="number"
               className="input-field"
               min="1"
@@ -151,8 +169,9 @@ export default function Settings() {
             />
           </div>
           <div>
-            <label className="label">Monthly Target (kg CO₂e)</label>
+            <label className="label" htmlFor="settings-monthly-target">Monthly Target (kg CO₂e)</label>
             <input
+              id="settings-monthly-target"
               type="number"
               className="input-field"
               min="10"

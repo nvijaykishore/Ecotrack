@@ -1,5 +1,6 @@
 import { ACTIONS, CHALLENGES } from '../data/actions';
 import { MUMBAI_AVERAGES } from '../data/emissionFactors';
+import { RULE_PRIORITY, THRESHOLDS, SUMMER_MONTHS, STREAK_MILESTONES } from './constants';
 import {
   getTodayString,
   getMonthString,
@@ -27,7 +28,6 @@ export function buildUserContext(state) {
   const today = getTodayString();
   const monthStr = getMonthString();
   const todayLogs = state.logs.filter((l) => l.date === today);
-  const monthlyLogs = state.logs.filter((l) => l.date.startsWith(monthStr));
   const todayFootprint = todayLogs.length
     ? getDailyTotal(state.logs, today)
     : state.history.find((h) => h.date === today)?.total ?? state.quizResults?.dailyTotal ?? 0;
@@ -58,7 +58,7 @@ function ruleNoLogsToday(ctx) {
   if (ctx.logsCount === 0) {
     return {
       id: 'onboard_log',
-      priority: 100,
+      priority: RULE_PRIORITY.ONBOARD_LOG,
       type: 'action',
       title: 'Log your first activity',
       message: 'I need at least one activity log to give you accurate guidance. Start with today\'s commute or electricity usage.',
@@ -70,7 +70,7 @@ function ruleNoLogsToday(ctx) {
   if (!ctx.todayCategories.length) {
     return {
       id: 'log_today',
-      priority: 90,
+      priority: RULE_PRIORITY.LOG_TODAY,
       type: 'reminder',
       title: 'Nothing logged today',
       message: `Your ${ctx.streak.current}-day streak is active, but today has no entries yet. Log before midnight to keep momentum.`,
@@ -89,7 +89,7 @@ function ruleOverDailyGoal(ctx) {
 
   return {
     id: 'over_daily_goal',
-    priority: 95,
+    priority: RULE_PRIORITY.OVER_DAILY_GOAL,
     type: 'alert',
     title: 'Daily goal exceeded',
     message: `You're ${over.toFixed(1)} kg over today's ${ctx.dailyTarget} kg target. Biggest driver this month: ${topCategory?.name ?? 'unknown'} (${topCategory?.value ?? 0} kg).`,
@@ -101,18 +101,19 @@ function ruleOverDailyGoal(ctx) {
 
 function ruleTransportDominant(ctx, state) {
   const transport = ctx.categoryBreakdown.find((c) => c.name === 'Transport');
-  if (!transport || transport.value < 30) return null;
+  if (!transport || transport.value < THRESHOLDS.TRANSPORT_MONTHLY_KG) return null;
 
   const carLogs = state.logs.filter(
     (l) => l.category === 'transport' && l.itemId?.startsWith('car_') && l.itemId !== 'car_pooling'
   );
-  if (carLogs.length < 2) return null;
+  if (carLogs.length < THRESHOLDS.MIN_CAR_LOGS_FOR_METRO) return null;
 
-  const savedPer10km = (0.192 - 0.033) * 10;
+  const savedPer10km =
+    (THRESHOLDS.CAR_PETROL_FACTOR - THRESHOLDS.METRO_FACTOR) * THRESHOLDS.METRO_SAVINGS_DISTANCE_KM;
 
   return {
     id: 'switch_metro',
-    priority: 85,
+    priority: RULE_PRIORITY.SWITCH_METRO,
     type: 'recommendation',
     title: 'Switch one trip to Metro',
     message: `Transport is ${transport.value} kg this month. Replacing a 10 km car trip with Mumbai Metro saves ~${savedPer10km.toFixed(1)} kg CO₂.`,
@@ -123,13 +124,13 @@ function ruleTransportDominant(ctx, state) {
 }
 
 function ruleElectricitySummer(ctx) {
-  if (ctx.month < 3 || ctx.month > 5) return null;
+  if (ctx.month < SUMMER_MONTHS.start || ctx.month > SUMMER_MONTHS.end) return null;
   const electricity = ctx.categoryBreakdown.find((c) => c.name === 'Electricity');
-  if (!electricity || electricity.value < 40) return null;
+  if (!electricity || electricity.value < THRESHOLDS.ELECTRICITY_MONTHLY_KG) return null;
 
   return {
     id: 'ac_optimization',
-    priority: 75,
+    priority: RULE_PRIORITY.AC_OPTIMIZATION,
     type: 'recommendation',
     title: 'Summer AC optimization',
     message: 'Mumbai summer detected with high electricity use. Set AC to 26°C with a ceiling fan — typically saves 20–30% cooling emissions.',
@@ -140,12 +141,12 @@ function ruleElectricitySummer(ctx) {
 }
 
 function ruleStreakMilestone(ctx) {
-  if (![2, 6, 13, 29].includes(ctx.streak.current)) return null;
-  const next = ctx.streak.current === 2 ? 3 : ctx.streak.current === 6 ? 7 : ctx.streak.current === 13 ? 14 : 30;
+  if (!STREAK_MILESTONES.before.includes(ctx.streak.current)) return null;
+  const next = STREAK_MILESTONES.targets[ctx.streak.current];
 
   return {
     id: 'streak_push',
-    priority: 70,
+    priority: RULE_PRIORITY.STREAK_PUSH,
     type: 'encouragement',
     title: `${next}-day streak within reach`,
     message: `You're at ${ctx.streak.current} days. One more log tomorrow unlocks a streak milestone and bonus XP.`,
@@ -156,7 +157,7 @@ function ruleStreakMilestone(ctx) {
 }
 
 function ruleSuggestAction(ctx, state) {
-  if (ctx.completedActionsCount >= 5) return null;
+  if (ctx.completedActionsCount >= THRESHOLDS.MIN_ACTIONS_BEFORE_STOP_SUGGESTING) return null;
 
   const topCat = ctx.categoryBreakdown[0]?.name?.toLowerCase();
   const matching = ACTIONS.find(
@@ -167,7 +168,7 @@ function ruleSuggestAction(ctx, state) {
 
   return {
     id: 'suggest_action',
-    priority: 60,
+    priority: RULE_PRIORITY.SUGGEST_ACTION,
     type: 'recommendation',
     title: `Try: ${matching.title}`,
     message: matching.description,
@@ -183,7 +184,7 @@ function ruleChallengeNudge(ctx) {
 
   return {
     id: 'start_challenge',
-    priority: 55,
+    priority: RULE_PRIORITY.START_CHALLENGE,
     type: 'engagement',
     title: `Start: ${challenge.title}`,
     message: `${challenge.description}. Check in daily for +50 XP per day.`,
@@ -195,11 +196,11 @@ function ruleChallengeNudge(ctx) {
 
 function ruleBenchmarkContext(ctx) {
   const vsAvg = ctx.todayFootprint - MUMBAI_AVERAGES.dailyFootprint;
-  if (Math.abs(vsAvg) < 1) return null;
+  if (Math.abs(vsAvg) < THRESHOLDS.MIN_BENCHMARK_DIFF_KG) return null;
 
   return {
     id: 'benchmark',
-    priority: 40,
+    priority: RULE_PRIORITY.BENCHMARK,
     type: 'insight',
     title: vsAvg > 0 ? 'Above Mumbai average' : 'Below Mumbai average',
     message: vsAvg > 0
@@ -239,7 +240,7 @@ export function generateAssistantResponse(state) {
     })
     .filter(Boolean)
     .sort((a, b) => b.priority - a.priority)
-    .slice(0, 4);
+    .slice(0, THRESHOLDS.MAX_RECOMMENDATIONS);
 
   const nextBestAction = recommendations[0] ?? null;
 
