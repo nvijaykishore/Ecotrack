@@ -11,6 +11,7 @@ import {
 } from '../utils/calculations';
 import { rebuildHistory } from '../utils/history';
 import { XP_REWARDS } from '../utils/gamification';
+import { validateLogInput, sanitizeNotes } from '../utils/validation';
 
 const initialState = {
   onboardingComplete: false,
@@ -111,7 +112,13 @@ export const useStore = create(
       },
 
       addLog: (logData) => {
-        const log = createLogFromData(logData);
+        const validation = validateLogInput(logData);
+        if (!validation.valid) return { success: false, errors: validation.errors };
+
+        const log = createLogFromData({
+          ...logData,
+          notes: sanitizeNotes(logData.notes),
+        });
         const logs = [...get().logs, log];
         const streak = updateStreak(get().streak, log.date);
         const history = rebuildHistory(logs, get().history);
@@ -125,17 +132,27 @@ export const useStore = create(
         }
 
         get().checkBadges();
+        return { success: true };
       },
 
       updateLog: (id, logData) => {
+        const validation = validateLogInput(logData);
+        if (!validation.valid) return { success: false, errors: validation.errors };
+
         const logs = get().logs.map((l) =>
-          l.id === id ? createLogFromData({ ...logData, createdAt: l.createdAt }, id) : l
+          l.id === id
+            ? createLogFromData(
+                { ...logData, notes: sanitizeNotes(logData.notes), createdAt: l.createdAt },
+                id
+              )
+            : l
         );
         const history = rebuildHistory(logs, get().history);
 
         set({ logs, history });
         get().addXp(XP_REWARDS.LOG_EDIT, 'Updated log entry');
         get().checkBadges();
+        return { success: true };
       },
 
       deleteLog: (id) => {

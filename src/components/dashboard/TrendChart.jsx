@@ -21,6 +21,7 @@ export default function TrendChart({ history, logs }) {
 
   return (
     <Card title="14-Day Trend" subtitle="Daily carbon footprint (kg CO₂e)">
+      <div aria-hidden="true">
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
           <defs>
@@ -64,6 +65,29 @@ export default function TrendChart({ history, logs }) {
           />
         </AreaChart>
       </ResponsiveContainer>
+      </div>
+      <details className="mt-4">
+        <summary className="text-sm text-eco-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-eco-500 rounded">
+          View data table (accessible alternative)
+        </summary>
+        <table className="w-full mt-2 text-sm" aria-label="14-day footprint data">
+          <caption className="sr-only">Daily carbon footprint for the last 14 days</caption>
+          <thead>
+            <tr className="text-left text-eco-500 border-b border-eco-200 dark:border-eco-700">
+              <th scope="col" className="py-2 pr-4">Date</th>
+              <th scope="col" className="py-2">Footprint (kg CO₂e)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {trendData.map((row) => (
+              <tr key={row.date} className="border-b border-eco-100 dark:border-eco-800">
+                <td className="py-1.5 pr-4">{row.label}</td>
+                <td className="py-1.5">{row.footprint}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
     </Card>
   );
 }

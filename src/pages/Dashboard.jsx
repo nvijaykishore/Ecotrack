@@ -1,4 +1,5 @@
 import { useStore } from '../store/useStore';
+import EcoAssistantCard from '../components/assistant/EcoAssistantCard';
 import FootprintCard from '../components/dashboard/FootprintCard';
 import GoalProgressRings from '../components/dashboard/GoalProgressRings';
 import GamificationCard from '../components/gamification/GamificationCard';
@@ -30,6 +31,8 @@ export default function Dashboard() {
           Your carbon footprint overview
         </p>
       </div>
+
+      <EcoAssistantCard />
 
       <FootprintCard
         todayFootprint={todayFootprint}

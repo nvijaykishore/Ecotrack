@@ -25,6 +25,7 @@ export default function CategoryBreakdown({ logs }) {
 
   return (
     <Card title="Category Breakdown" subtitle="This month's emissions by category">
+      <div aria-hidden="true">
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
           <XAxis
@@ -53,6 +54,29 @@ export default function CategoryBreakdown({ logs }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      </div>
+      <details className="mt-4">
+        <summary className="text-sm text-eco-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-eco-500 rounded">
+          View data table (accessible alternative)
+        </summary>
+        <table className="w-full mt-2 text-sm" aria-label="Monthly emissions by category">
+          <caption className="sr-only">This month emissions breakdown by category</caption>
+          <thead>
+            <tr className="text-left text-eco-500 border-b border-eco-200 dark:border-eco-700">
+              <th scope="col" className="py-2 pr-4">Category</th>
+              <th scope="col" className="py-2">kg CO₂e</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row) => (
+              <tr key={row.name} className="border-b border-eco-100 dark:border-eco-800">
+                <td className="py-1.5 pr-4">{row.name}</td>
+                <td className="py-1.5">{row.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
     </Card>
   );
 }

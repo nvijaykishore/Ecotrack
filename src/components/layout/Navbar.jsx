@@ -11,7 +11,10 @@ const NAV_ITEMS = [
 
 export default function Navbar() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-eco-950/90 backdrop-blur-md border-t border-eco-100 dark:border-eco-800 safe-area-bottom">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-eco-950/90 backdrop-blur-md border-t border-eco-100 dark:border-eco-800 safe-area-bottom"
+      aria-label="Main navigation"
+    >
       <div className="container mx-auto max-w-4xl px-2 py-2">
         <div className="flex items-center justify-around">
           {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
@@ -19,12 +22,17 @@ export default function Navbar() {
               key={to}
               to={to}
               end={to === '/'}
+              aria-label={label}
               className={({ isActive }) =>
                 `nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`
               }
             >
-              <Icon className="w-5 h-5" />
-              <span>{label}</span>
+              {({ isActive }) => (
+                <>
+                  <Icon className="w-5 h-5" aria-hidden="true" />
+                  <span aria-current={isActive ? 'page' : undefined}>{label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>

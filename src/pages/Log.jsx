@@ -20,22 +20,32 @@ export default function Log() {
   const deleteLog = useStore((s) => s.deleteLog);
   const [editingLog, setEditingLog] = useState(null);
   const [showNewForm, setShowNewForm] = useState(true);
+  const [formErrors, setFormErrors] = useState([]);
 
   const today = getTodayString();
   const todayLogs = logs.filter((l) => l.date === today).reverse();
   const recentLogs = logs.slice(-10).reverse();
 
   const handleCreate = (logData) => {
-    addLog(logData);
+    const result = addLog(logData);
+    if (!result?.success) {
+      setFormErrors(result?.errors || ['Could not save entry.']);
+      return;
+    }
+    setFormErrors([]);
     setShowNewForm(false);
     setTimeout(() => setShowNewForm(true), 100);
   };
 
   const handleUpdate = (logData) => {
-    if (editingLog) {
-      updateLog(editingLog.id, logData);
-      setEditingLog(null);
+    if (!editingLog) return;
+    const result = updateLog(editingLog.id, logData);
+    if (!result?.success) {
+      setFormErrors(result?.errors || ['Could not update entry.']);
+      return;
     }
+    setFormErrors([]);
+    setEditingLog(null);
   };
 
   return (
@@ -75,14 +85,15 @@ export default function Log() {
           <LogForm
             initialLog={editingLog}
             onSubmit={handleUpdate}
-            onCancel={() => setEditingLog(null)}
+            onCancel={() => { setEditingLog(null); setFormErrors([]); }}
             submitLabel="Update Entry"
+            errors={formErrors}
           />
         </Card>
       ) : (
         showNewForm && (
           <Card title="Log Activity">
-            <LogForm onSubmit={handleCreate} />
+            <LogForm onSubmit={handleCreate} errors={formErrors} />
           </Card>
         )
       )}

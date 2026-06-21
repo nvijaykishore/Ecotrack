@@ -1,196 +1,202 @@
-# EcoTrack — Carbon Footprint Awareness Platform
+# EcoTrack — Smart Carbon Footprint Assistant
 
-A **frontend-only, no-backend** Progressive Web App for tracking your personal carbon footprint. Built with India/Mumbai emission defaults, offline support, and full localStorage persistence.
+**Live demo:** https://ecotrack-teal.vercel.app
 
-![EcoTrack](public/favicon.svg)
+A **frontend-only Progressive Web App** that acts as a **context-aware eco assistant** for urban Indians. It tracks carbon footprint, makes rule-based decisions from user context, and recommends personalised actions — all offline with localStorage persistence.
 
-## Features
+---
 
-- **Onboarding Quiz** — 10 questions with instant footprint results and pie chart breakdown
-- **Dashboard** — Live footprint, 14-day trends, category breakdown, personalized tips
-- **Activity Logging** — Manual log form with realistic India/Mumbai emission factors
-- **Eco Actions** — Toggleable action library with impact tracking and challenges
-- **Streaks & Badges** — Gamified progress stored locally
-- **Education** — Offline learning content about carbon, electricity, transport, food, waste
-- **PDF Reports** — Export monthly carbon report via jsPDF
-- **Settings** — Dark/light mode, JSON export/import, reset all data
-- **PWA** — Installable app with service worker for offline use
+## Chosen Challenge Vertical
 
-## Tech Stack
+### Climate & Sustainability — Urban Carbon Awareness
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | React 18 + Vite 6 |
-| Styling | Tailwind CSS (dark/light mode) |
-| State | Zustand + persist middleware → localStorage |
-| Charts | Recharts |
-| PDF | jsPDF |
-| PWA | Web App Manifest + Service Worker |
-| Icons | Lucide React |
+| Item | Detail |
+|------|--------|
+| **Vertical** | Climate & Sustainability |
+| **Persona** | **Priya**, 28, Mumbai IT professional — daily commute, AC usage, mixed diet, wants practical reduction without major lifestyle disruption |
+| **Problem** | Urban Indians lack a simple tool that understands their local context (Mumbai grid, BEST bus, metro, BMC waste rules) and tells them *what to do next* |
+| **Solution** | EcoTrack = carbon tracker + **rule-based Eco Assistant** that analyses logs, goals, streaks, and location to deliver prioritised recommendations |
+
+---
+
+## Approach & Assistant Logic
+
+EcoTrack is a **smart, dynamic assistant** implemented as a **transparent rule engine** (no black-box AI). The assistant lives in `src/assistant/ecoAssistant.js`.
+
+### Decision flow
+
+```
+User completes quiz → baseline footprint stored
+        ↓
+User logs daily activities → emissions calculated from India/Mumbai factors
+        ↓
+buildUserContext() aggregates: today's total, monthly breakdown, goals, streak, challenges
+        ↓
+Rule engine evaluates 8 contextual rules (priority-sorted)
+        ↓
+generateAssistantResponse() returns: summary, nextBestAction, top 4 recommendations
+        ↓
+Dashboard Eco Assistant card displays reasoning + actionable links
+```
+
+### Rule examples (see `src/assistant/ecoAssistant.js`)
+
+| Priority | Rule | Trigger | Action |
+|----------|------|---------|--------|
+| 100 | No logs | `logs.length === 0` | Prompt first log |
+| 95 | Over daily goal | `todayFootprint > dailyTarget` | Alert + suggest actions |
+| 85 | High transport | Transport > 30 kg + car logs | Recommend Metro (saves ~1.6 kg/10 km) |
+| 75 | Summer AC | Apr–Jun + electricity > 40 kg | AC optimization tip |
+| 70 | Streak milestone | 2, 6, 13, 29-day streak | Encourage next milestone |
+| 60 | Action match | Top emission category | Suggest matching eco action |
+| 55 | Challenge nudge | No active challenge | Start Plastic-Free Week |
+| 40 | Benchmark | vs Mumbai average | Contextual insight |
+
+Each recommendation includes **transparent reasoning** (`reasoning` field) shown in the UI.
+
+---
+
+## How the Solution Works
+
+1. **Onboarding quiz** — 10 questions → instant footprint baseline with chart
+2. **Eco Assistant** — contextual recommendations on every dashboard visit
+3. **Activity logging** — validated form with India/Mumbai emission factors
+4. **Goal rings** — visual daily/monthly target progress
+5. **Actions & challenges** — toggleable habits + daily check-in challenges
+6. **Gamification** — XP, 10 levels, 19 badges, streak tracking
+7. **Education** — offline Mumbai-specific content
+8. **Settings** — dark mode, JSON export/import, PDF report, reset
+
+### Tech stack
+
+React 18 · Vite 5 · Tailwind CSS · Zustand (persist) · Recharts · jsPDF · PWA
+
+---
+
+## Assumptions
+
+1. **Target user** is an urban Indian (Mumbai defaults) with smartphone browser access
+2. **Emission factors** are static approximations (CEA grid 0.82 kg/kWh, IPCC transport values) — not live API data
+3. **Assistant is rule-based**, not LLM-powered — decisions are deterministic and auditable
+4. **Single-device** — all data in `localStorage` key `ecotrack-storage`; no backend/auth
+5. **Quiz baseline** is used until user logs override daily totals
+6. **Car pooling** factor assumes 2 occupants sharing a petrol car (0.096 kg/km)
+
+---
 
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
+npm run dev        # http://localhost:5173
+npm test           # run test suite
+npm run build      # production build
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+---
 
-## Build for Deployment
+## Testing
 
 ```bash
-npm run build
-npm run preview   # Test production build locally
+npm test
 ```
 
-The `dist/` folder contains the production build.
+| Test file | Coverage |
+|-----------|----------|
+| `src/assistant/__tests__/ecoAssistant.test.js` | Assistant rules, context building, priorities |
+| `src/utils/__tests__/calculations.test.js` | Footprint math, streaks, ratings |
+| `src/utils/__tests__/validation.test.js` | Input validation, sanitization |
+| `src/data/__tests__/emissionFactors.test.js` | Emission calculations |
+| `src/components/assistant/__tests__/EcoAssistantCard.test.jsx` | Assistant UI rendering |
 
-### Deploy to Netlify
+---
 
-1. Push the project to GitHub
-2. Connect repo in [Netlify](https://netlify.com)
-3. Build settings:
-   - **Build command:** `npm run build`
-   - **Publish directory:** `dist`
-4. Add a `_redirects` file in `public/` for SPA routing (included below)
+## Accessibility
 
-Create `public/_redirects`:
+| Feature | Implementation |
+|---------|----------------|
+| Skip link | "Skip to main content" in `Layout.jsx` |
+| Landmarks | `role="main"`, `aria-label` on navigation |
+| Focus | `:focus-visible` outlines on all interactive elements |
+| Charts | Expandable data tables as accessible alternatives |
+| Forms | `role="alert"` for validation errors, `aria-required` |
+| Toasts | `role="alert"`, `aria-live="assertive"` for badges |
+| Motion | `prefers-reduced-motion` disables animations |
+
+---
+
+## Security
+
+- Log input validated before persistence (`src/utils/validation.js`)
+- Notes sanitized (HTML stripped, 200 char limit)
+- Unrealistic quantities rejected per category
+- No `eval`, no `dangerouslySetInnerHTML`
+- Data stays client-side; export/import is user-initiated JSON only
+
+---
+
+## Efficiency
+
+- **Route-level code splitting** via `React.lazy()` for all pages
+- **Manual chunks** in Vite: `vendor`, `charts`, `pdf`, `state`
+- PWA service worker for offline asset caching
+- Zustand selective persistence (only user data, not UI state)
+
+---
+
+## Deployment
+
+**Vercel (live):** https://ecotrack-teal.vercel.app
+
+```bash
+npx vercel deploy --prod --yes
 ```
-/*    /index.html   200
-```
 
-### Deploy to Vercel
+`vercel.json` includes SPA rewrites and Vite build settings.
 
-1. Push to GitHub
-2. Import in [Vercel](https://vercel.com)
-3. Framework preset: **Vite**
-4. Build command: `npm run build`
-5. Output directory: `dist`
-
-Vercel auto-handles SPA routing for Vite projects.
+---
 
 ## Project Structure
 
 ```
-EcoTrack/
-├── public/
-│   ├── favicon.svg
-│   ├── manifest.json            # PWA manifest
-│   ├── sw.js                    # Service worker (offline cache)
-│   ├── _redirects               # Netlify SPA routing
-│   ├── pwa-192x192.png          # Generated by postinstall
-│   ├── pwa-512x512.png
-│   └── apple-touch-icon.png
-├── scripts/
-│   └── generate-icons.mjs       # PWA icon generator
-├── src/
-│   ├── components/
-│   │   ├── dashboard/           # FootprintCard, TrendChart, Tips, Badges
-│   │   ├── layout/              # Header, Navbar, Layout
-│   │   ├── logging/             # LogForm
-│   │   ├── onboarding/          # QuizResults
-│   │   └── ui/                  # Card, Badge
-│   ├── data/
-│   │   ├── actions.js           # Eco actions & challenges
-│   │   ├── badges.js            # Badge definitions
-│   │   ├── education.js         # Learning content
-│   │   ├── emissionFactors.js   # India/Mumbai emission factors
-│   │   └── quizQuestions.js     # Onboarding quiz
-│   ├── pages/
-│   │   ├── Actions.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── Education.jsx
-│   │   ├── Log.jsx
-│   │   ├── Onboarding.jsx
-│   │   └── Settings.jsx
-│   ├── store/
-│   │   └── useStore.js          # Zustand store with persist
-│   ├── utils/
-│   │   ├── calculations.js      # Footprint math, streaks, tips
-│   │   └── pdfExport.js         # Monthly PDF report
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-├── index.html
-├── package.json
-├── tailwind.config.js
-├── vite.config.js
-└── README.md
+src/
+├── assistant/           # Rule-based Eco Assistant engine
+│   ├── ecoAssistant.js  # Context builder + 8 decision rules
+│   └── __tests__/
+├── components/
+│   ├── assistant/       # EcoAssistantCard UI
+│   ├── dashboard/       # Charts, goals, streaks
+│   ├── gamification/  # XP, badge toasts
+│   └── layout/          # Header, nav, skip link
+├── data/                # Emission factors, quiz, actions, badges
+├── pages/               # Route pages (lazy-loaded)
+├── store/               # Zustand + persist
+└── utils/               # Calculations, validation, PDF, gamification
 ```
+
+---
 
 ## Data Persistence
 
-All user data is stored in **localStorage** under the key `ecotrack-storage` via Zustand's `persist` middleware.
+All data auto-saves to **localStorage** (`ecotrack-storage`): profile, quiz, logs, history, actions, challenges, goals, streak, XP, badges, theme.
 
-### What gets saved automatically
+- **Export/import** JSON in Settings
+- **Reset all data** in Settings → Danger Zone
 
-| Data | Description |
-|------|-------------|
-| `profile` | Name, location |
-| `quizAnswers` / `quizResults` | Onboarding quiz data |
-| `logs` | All activity log entries |
-| `history` | Daily footprint totals for trend charts |
-| `completedActions` | Toggled eco actions |
-| `completedChallenges` | Challenge completion status |
-| `goals` | Daily/monthly reduction targets |
-| `streak` | Current and longest logging streak |
-| `earnedBadgeIds` | Unlocked badge IDs |
-| `theme` | Light/dark mode preference |
-| `onboardingComplete` | Whether quiz is finished |
+---
 
-### Export / Import
-
-- **JSON Export** (Settings → Export Data): Full backup of all persisted state
-- **JSON Import** (Settings → Import): Restore from backup file
-- **Reset All Data** (Settings → Danger Zone): Clears localStorage and restarts onboarding
-
-### Emission Factors (India/Mumbai)
-
-Hardcoded realistic factors including:
-
-- Maharashtra grid: **0.82 kg CO₂/kWh**
-- Mumbai Metro: **0.033 kg CO₂/km**
-- Local Train: **0.036 kg CO₂/km**
-- Car (Petrol): **0.192 kg CO₂/km**
-- Vegetarian meal: **1.2 kg CO₂**
-- LPG cylinder: **42.5 kg CO₂**
-
-See `src/data/emissionFactors.js` for the complete list.
-
-## Limitations (No-Backend Version)
+## Limitations (No-Backend)
 
 | Limitation | Detail |
 |-----------|--------|
-| **Single device** | Data lives in one browser's localStorage — no cloud sync |
-| **No authentication** | Anyone with device access can see/modify data |
-| **Storage limits** | localStorage capped at ~5-10 MB per origin |
-| **No real-time data** | Emission factors are static/hardcoded, not live grid data |
-| **No social features** | No leaderboards, sharing, or community |
-| **Browser-dependent** | Clearing browser data wipes all EcoTrack data |
-| **Approximate calculations** | Quiz and logs use simplified models, not life-cycle assessments |
-| **PDF styling** | Basic text-based PDF, not rich visual reports |
-| **PWA on iOS** | Limited service worker support; install experience varies |
+| Single device | No cloud sync |
+| Static factors | Not live grid data |
+| Rule-based assistant | Not conversational AI |
+| localStorage cap | ~5–10 MB |
 
-### Recommended for production backend
+See `IMPROVEMENTS.md` for future roadmap.
 
-If you later add a backend, consider:
-- User accounts with cloud sync
-- Real-time grid emission APIs (e.g., electricityMap)
-- GPS-based transport tracking
-- Push notifications for streak reminders
-- Aggregated anonymous city-level statistics
-
-## Development
-
-```bash
-npm run dev       # Dev server with HMR
-npm run build     # Production build + PWA assets
-npm run preview   # Preview production build
-```
+---
 
 ## License
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { LOG_CATEGORIES } from '../../data/emissionFactors';
 import { getTodayString } from '../../utils/calculations';
 
-export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 'Save Entry' }) {
+export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 'Save Entry', errors = [] }) {
   const [category, setCategory] = useState('transport');
   const [itemId, setItemId] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -54,7 +54,20 @@ export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" aria-label={initialLog ? 'Edit activity log' : 'New activity log'}>
+      {errors.length > 0 && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300"
+        >
+          <ul className="list-disc list-inside space-y-1">
+            {errors.map((err) => (
+              <li key={err}>{err}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div>
         <label className="label">Category</label>
         <div className="flex flex-wrap gap-2">
@@ -78,10 +91,12 @@ export default function LogForm({ onSubmit, initialLog, onCancel, submitLabel = 
       <div>
         <label className="label">Activity</label>
         <select
+          id="log-activity"
           className="input-field"
           value={itemId}
           onChange={(e) => setItemId(e.target.value)}
           required
+          aria-required="true"
         >
           <option value="">Select activity...</option>
           {selectedCategory?.items.map((item) => (

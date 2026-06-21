@@ -21,7 +21,12 @@ export default function BadgeToast() {
   const Icon = Icons[badge.icon] || Icons.Award;
 
   return (
-    <div className="fixed top-20 left-4 right-4 z-50 flex justify-center pointer-events-none animate-slide-up">
+    <div
+      className="fixed top-20 left-4 right-4 z-50 flex justify-center pointer-events-none animate-slide-up"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
       <div className="pointer-events-auto max-w-sm w-full bg-white dark:bg-eco-900 rounded-2xl shadow-xl border border-eco-200 dark:border-eco-700 p-4 flex items-center gap-4">
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-eco-400 to-eco-600 flex items-center justify-center flex-shrink-0">
           <Icon className="w-6 h-6 text-white" />
@@ -34,6 +39,7 @@ export default function BadgeToast() {
         <button
           onClick={clearBadgeAlert}
           className="text-eco-400 hover:text-eco-600 text-sm flex-shrink-0"
+          aria-label="Dismiss badge notification"
         >
           ✕
         </button>
