@@ -1,0 +1,29 @@
+{
+  "name": "EcoTrack - Carbon Footprint Awareness",
+  "short_name": "EcoTrack",
+  "description": "Track your carbon footprint and build sustainable habits",
+  "theme_color": "#2d6a4f",
+  "background_color": "#f0f7f4",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

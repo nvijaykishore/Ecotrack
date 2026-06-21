@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.env
+.env.*
+!.env.example
+.vercel
+
+# Local dev artifacts (AI session logs, etc.)
+terminals/
+*.log
+npm-debug.log*
